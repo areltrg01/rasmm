@@ -316,6 +316,7 @@ a{text-decoration:none;color:inherit}
 <div id="toast" class="toast"></div>
 
 <script>
+const API_BASE="https://rasmm.onrender.com";
 let currentService=null;
 let currentPrice=0;
 let telegramId=null;
@@ -387,7 +388,7 @@ async function placeOrder(){
  if(!link||!qty||!currentService){toast('Bilgileri kontrol et');return}
  if(!telegramId){toast('Telegram bağlantısı bekleniyor');return}
  try{
-  const r=await fetch('/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:telegramId,category:'Manual',service:currentService,link,quantity:qty,price:(qty/1000)*currentPrice})});
+  const r=await fetch(API_BASE+'/api/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:telegramId,category:'Manual',service:currentService,link,quantity:qty,price:(qty/1000)*currentPrice})});
   const d=await r.json();
   if(!r.ok){toast(d.error||'Sipariş oluşturulamadı');return}
   toast('Sipariş oluşturuldu ✓');document.getElementById('orderLink').value='';openPage('orders');
@@ -395,12 +396,12 @@ async function placeOrder(){
 }
 async function loadBalance(){
  if(!telegramId)return;
- try{const r=await fetch('/api/balance/'+telegramId);const d=await r.json();if(r.ok){document.getElementById('walletBalance').textContent=Number(d.balance||0).toFixed(2)+' USDT';document.getElementById('homeBalance').innerHTML=Number(d.balance||0).toFixed(2)+' <span>USDT</span>'}}catch(e){}
+ try{const r=await fetch(API_BASE+'/api/balance/'+telegramId);const d=await r.json();if(r.ok){document.getElementById('walletBalance').textContent=Number(d.balance||0).toFixed(2)+' USDT';document.getElementById('homeBalance').innerHTML=Number(d.balance||0).toFixed(2)+' <span>USDT</span>'}}catch(e){}
 }
 async function loadOrders(){
  if(!telegramId)return;
  try{
-  const r=await fetch('/api/orders/'+telegramId);const d=await r.json();const box=document.getElementById('ordersList');
+  const r=await fetch(API_BASE+'/api/orders/'+telegramId);const d=await r.json();const box=document.getElementById('ordersList');
   if(!r.ok||!d.orders||!d.orders.length){box.innerHTML='<div class="list-item"><b>Henüz sipariş yok</b><span>İlk siparişin burada görünecek.</span></div>';return}
   box.innerHTML=d.orders.map(o=>`<div class="list-item"><div class="row"><b>#${o.id} · ${o.service}</b><span class="status">${o.status}</span></div><span>${o.quantity} adet · ${Number(o.price).toFixed(2)} USDT</span></div>`).join('');
  }catch(e){}
@@ -425,7 +426,7 @@ async function initTelegram(){
     document.getElementById('profileName').textContent=u.username?'@'+u.username:(u.first_name||'RA Member');
     document.getElementById('profileId').textContent='Telegram ID · '+u.id;
     document.getElementById('avatar').textContent=(u.first_name||'RA').slice(0,2).toUpperCase();
-    await fetch('/api/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:u.id,username:u.username||'',first_name:u.first_name||''})});
+    await fetch(API_BASE+'/api/user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({telegram_id:u.id,username:u.username||'',first_name:u.first_name||''})});
     loadBalance();loadOrders();
    }
   }
